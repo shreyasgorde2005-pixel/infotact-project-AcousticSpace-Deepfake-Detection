@@ -1,6 +1,6 @@
 filename,label,voice_room,background_room
-sample5_pair0_matched_small_room.wav,0,small_room,small_room
-sample1_pair3_mismatched_bathroom_vs_office.wav,1,bathroom,office
-sample1_pair0_mismatched_small_room_vs_medium_room.wav,1,small_room,medium_room
-sample5_pair3_mismatched_bathroom_vs_office.wav,1,bathroom,office
-sample2_pair3_mismatched_bathroom_vs_office.wav,1,bathroom,office
+sample4_pair6_mismatched_room_02_vs_room_03.wav,1,room_02,room_03
+sample1_pair14_matched_room_10.wav,0,room_10,room_10
+sample1_pair3_matched_office.wav,0,office,office
+sample4_pair19_mismatched_room_15_vs_room_16.wav,1,room_15,room_16
+sample2_pair10_matched_room_06.wav,0,room_06,room_06

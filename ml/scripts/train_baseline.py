@@ -7,7 +7,7 @@ import os
 import sys
 
 from evaluate_utils import compute_eer, compute_accuracy
-from dataset_loader import load_combined_dataset
+from dataset_loader import load_all_training_data
 from augmentation import augment_waveform
 
 MODEL_ID = "MIT/ast-finetuned-audioset-10-10-0.4593"
@@ -65,7 +65,7 @@ if __name__ == "__main__":
     print(f"Loaded {len(rir_waveforms)} RIRs for augmentation.")
     
     feature_extractor = ASTFeatureExtractor.from_pretrained(MODEL_ID)
-    file_paths, labels = load_combined_dataset()
+    file_paths, labels = load_all_training_data()
     
     if len(file_paths) < 8:
         print("Not enough samples yet - ask HetPatel to run generate_rirs.py + build_mismatch_dataset.py first.")
@@ -86,7 +86,7 @@ if __name__ == "__main__":
     model = ASTForAudioClassification.from_pretrained(MODEL_ID, num_labels=2, ignore_mismatched_sizes=True)
     
     optimizer = torch.optim.AdamW(model.parameters(), lr=1e-5)
-    scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.5, patience=1, verbose=True)
+    scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.5, patience=1)
     
     best_eer = 1.0
     patience = 3
@@ -110,7 +110,7 @@ if __name__ == "__main__":
         if eer < best_eer:
             best_eer = eer
             epochs_no_improve = 0
-            torch.save(model.state_dict(), f"{CHECKPOINT_DIR}/best_model.pt")
+            torch.save(model.state_dict(), f"{CHECKPOINT_DIR}/best_model_defended.pt")
             print(f"Saved new best checkpoint (EER={eer:.3f})")
         else:
             epochs_no_improve += 1

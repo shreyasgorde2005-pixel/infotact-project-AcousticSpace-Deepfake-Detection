@@ -13,3 +13,4 @@ __pycache__/
 *.ckpt
 ml/data/raw/
 ml/data/rirs/
+ml/data/demo_showcase/

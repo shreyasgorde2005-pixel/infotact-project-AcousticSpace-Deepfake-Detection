@@ -1,0 +1,11 @@
+filename,label,condition
+gen_fake_000.wav,1,unseen_noise_deepfake
+gen_fake_001.wav,1,unseen_noise_deepfake
+gen_fake_002.wav,1,unseen_noise_deepfake
+gen_fake_003.wav,1,unseen_noise_deepfake
+gen_fake_004.wav,1,unseen_noise_deepfake
+gen_real_005.wav,0,unseen_noise_real
+gen_real_006.wav,0,unseen_noise_real
+gen_real_007.wav,0,unseen_noise_real
+gen_real_008.wav,0,unseen_noise_real
+gen_real_009.wav,0,unseen_noise_real

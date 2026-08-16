@@ -1,0 +1,11 @@
+filename,label,voice_source
+genuine_000.wav,0,real_speech
+genuine_001.wav,0,real_speech
+genuine_002.wav,0,real_speech
+genuine_003.wav,0,real_speech
+genuine_004.wav,0,real_speech
+deepfake_000.wav,1,tts_speech
+deepfake_001.wav,1,tts_speech
+deepfake_002.wav,1,tts_speech
+deepfake_003.wav,1,tts_speech
+deepfake_004.wav,1,tts_speech

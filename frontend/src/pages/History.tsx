@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import LoadingSpinner from "../components/LoadingSpinner";
 
 interface HistoryEntry {
   timestamp: string;
@@ -19,7 +20,7 @@ export default function History() {
       .finally(() => setLoading(false));
   }, []);
 
-  if (loading) return <p className="p-6">Loading history...</p>;
+  if (loading) return <LoadingSpinner label="Loading history..." />;
 
   return (
     <div className="max-w-2xl mx-auto p-6">

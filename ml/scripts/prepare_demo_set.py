@@ -3,8 +3,8 @@ import os
 import random
 import shutil
 
-SRC_DIR = "data/mismatch_dataset"
-DEMO_DIR = "data/demo_test_set"
+SRC_DIR = "../data/mismatch_dataset"
+DEMO_DIR = "../data/demo_test_set"
 
 def main():
     os.makedirs(DEMO_DIR, exist_ok=True)

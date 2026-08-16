@@ -6,7 +6,8 @@ from transformers import ASTFeatureExtractor, ASTForAudioClassification
 from evaluate_utils import compute_eer, compute_accuracy
 
 MODEL_ID = "MIT/ast-finetuned-audioset-10-10-0.4593"
-CHECKPOINT_PATH = "../checkpoints/best_model.pt"
+import sys
+CHECKPOINT_PATH = sys.argv[1] if len(sys.argv) > 1 else "../checkpoints/best_model.pt"
 ATTACK_DIR = "../data/attack_test_set"
 
 def load_attack_set():

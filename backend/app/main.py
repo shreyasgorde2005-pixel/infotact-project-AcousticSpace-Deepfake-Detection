@@ -1,13 +1,16 @@
-from fastapi import FastAPI, UploadFile, File, HTTPException, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, UploadFile, File, HTTPException, WebSocket, WebSocketDisconnect, Request
+from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
-from app.models.schemas import PredictionResponse, SegmentFlag
+from app.models.schemas import PredictionResponse, SegmentFlag, AcousticComparison
 from app.core.history import log_prediction, get_history
 import sys
 import os
 import tempfile
-
+import time
+import asyncio
 sys.path.append(os.path.join(os.path.dirname(__file__), "..", "..", "ml", "scripts"))
 from inference import predict_mismatch
+from segment_features import extract_voice_bg_features
 
 ALLOWED_EXTENSIONS = {".wav", ".mp3", ".flac", ".ogg", ".m4a"}
 MAX_FILE_SIZE_MB = 20
@@ -21,9 +24,33 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+from app.core.config import MODEL_VERSION_NAME, MODEL_CHECKPOINT_PATH
+
+@app.get("/")
+def root():
+    return {
+        "name": "AcousticSpace API",
+        "version": "1.0",
+        "model_version": MODEL_VERSION_NAME,
+        "docs": "/docs",
+    }
+
+@app.exception_handler(Exception)
+async def generic_exception_handler(request: Request, exc: Exception):
+    return JSONResponse(
+        status_code=500,
+        content={"detail": f"Unexpected server error: {str(exc)}"},
+    )
+
 @app.get("/health")
 def health_check():
     return {"status": "ok"}
+
+@app.get("/model-info")
+def model_info():
+    return {"model_version": MODEL_VERSION_NAME, "checkpoint_path": MODEL_CHECKPOINT_PATH}
+
+TIMEOUT_SECONDS = float(os.getenv("PREDICT_TIMEOUT_SECONDS", "30"))
 
 @app.post("/api/v1/predict", response_model=PredictionResponse)
 async def predict_v1(file: UploadFile = File(...)):
@@ -43,13 +70,23 @@ async def predict_v1(file: UploadFile = File(...)):
         tmp.write(contents)
         tmp_path = tmp.name
 
+    start_time = time.time()
     try:
-        result = predict_mismatch(tmp_path)
+        loop = asyncio.get_event_loop()
+        result = await asyncio.wait_for(
+            loop.run_in_executor(None, predict_mismatch, tmp_path),
+            timeout=TIMEOUT_SECONDS,
+        )
+        acoustic_feats = extract_voice_bg_features(tmp_path)
+    except asyncio.TimeoutError:
+        raise HTTPException(status_code=504, detail=f"Prediction timed out after {TIMEOUT_SECONDS}s")
     except Exception as e:
         raise HTTPException(status_code=422, detail=f"Could not process audio file: {e}")
     finally:
-        os.remove(tmp_path)
+        if os.path.exists(tmp_path):
+            os.remove(tmp_path)
 
+    inference_time_ms = round((time.time() - start_time) * 1000, 1)
     log_prediction(file.filename, result["is_fake"], result["confidence"])
     return PredictionResponse(
         filename=file.filename,
@@ -58,6 +95,8 @@ async def predict_v1(file: UploadFile = File(...)):
         rir_mismatch_score=result["rir_mismatch_score"],
         breathing_score=result["breathing_score"],
         flagged_segments=[SegmentFlag(**s) for s in result["flagged_segments"]],
+        acoustic_comparison=AcousticComparison(**acoustic_feats) if "acoustic_feats" in locals() else None,
+        inference_time_ms=inference_time_ms,
     )
 
 @app.post("/predict", response_model=PredictionResponse)
@@ -89,6 +128,7 @@ async def websocket_predict(websocket: WebSocket):
             os.remove(tmp_path)
             
         await websocket.send_json({"stage": "running_model", "message": "Running AST classifier"})
+        log_prediction("live_stream.wav", result["is_fake"], result["confidence"])
         await websocket.send_json({
             "stage": "done",
             "result": {

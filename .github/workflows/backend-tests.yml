@@ -1,0 +1,25 @@
+name: Backend Tests
+on:
+  push:
+    branches: [main, dev]
+  pull_request:
+    branches: [main, dev]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.8"
+      - name: Install dependencies
+        run: |
+          sudo apt-get update && sudo apt-get install -y libsndfile1 ffmpeg
+          pip install -r requirements.txt
+          pip install torch transformers
+      - name: Run tests
+        run: pytest tests/ -v

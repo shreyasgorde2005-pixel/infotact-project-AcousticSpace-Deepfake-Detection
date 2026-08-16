@@ -6,7 +6,7 @@ import csv
 import glob
 from scipy.signal import fftconvolve
  
-RIR_DIR = "data/rirs"
+RIR_DIR = "../data/rirs"
 TTS_DIR = "../data/tts_samples"
 OUT_DIR = "../data/attack_test_set"
 SR = 16000
